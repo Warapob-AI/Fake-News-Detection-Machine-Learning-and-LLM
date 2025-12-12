@@ -314,11 +314,21 @@ function ResultPage() {
                 {/* เพิ่ม justifyContent="center" เพื่อให้การ์ดที่เหลืออยู่ตรงกลาง */}
                 <Grid container maxWidth='lg' spacing={3} justifyContent="center">
                     {relatedWebsites
-                        // 1. กรองข้อมูล: เอาอันที่ชื่อ 'ไม่สามารถโหลดข้อมูลได้' ออก
-                        .filter(site => site.title !== 'ไม่สามารถโหลดข้อมูลได้' && site.title !== 'No content found')
-                        // 2. ตัดให้เหลือสูงสุด 3 อัน (หลังจากกรองแล้ว)
+                        // 1. กรองข้อมูล
+                        .filter(site =>
+                            // กรอง Title (ใช้ && นะครับ เพื่อให้ทุกเงื่อนไขต้องเป็นจริง)
+                            site.title !== 'ไม่สามารถโหลดข้อมูลได้' &&
+                            site.title !== 'No content found' &&
+                            site.title !== 'ไม่มีชื่อเรื่อง' &&
+
+                            // กรอง Link (Shopee & Lazada)
+                            !site.link.includes('shopee') &&
+                            !site.link.includes('lazada')
+                        )
+                        // 2. ตัดให้เหลือสูงสุด 3 อัน
                         .slice(0, 3)
                         .map((site, index) => (
+
                             <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ px: '2rem', display: 'flex', justifyContent: 'center' }} key={index}>
                                 <Card sx={{
                                     width: '100%',
@@ -399,7 +409,7 @@ function ResultPage() {
             </Button>
 
 
-        
+
 
         </Box >
     );
