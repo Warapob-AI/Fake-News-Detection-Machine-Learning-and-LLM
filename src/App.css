@@ -1,0 +1,24 @@
+html, body, #root {
+  background-color: transparent !important; /* สั่งให้พื้นหลังโปร่งใส */
+  margin: 0;
+  padding: 0;
+} 
+
+.gradient-background {
+  background: linear-gradient(319deg,#11326d,#1b4a9d,#1b7d9d);
+  background-size: 180% 180%;
+  animation: gradient-animation 9s ease infinite;
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+/* <div className="gradient-background" style={{ position: 'fixed', inset: 0, zIndex: -1 }}></div> */

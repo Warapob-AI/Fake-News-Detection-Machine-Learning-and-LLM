@@ -1,0 +1,46 @@
+--- Model Evaluation Report ---
+Generated on: 2025-10-29 21:47:19
+------------------------------
+
+--- Overall Performance ---
+Accuracy: 0.9485
+
+--- Per-Class Performance (on Test Set) ---
+Class: 'ข่าวจริง'
+  - Total in Test Set: 746
+  - Correctly Predicted: 683
+Class: 'ข่าวปลอม'
+  - Total in Test Set: 2221
+  - Correctly Predicted: 2197
+Class: 'ข่าวบิดเบือน'
+  - Total in Test Set: 255
+  - Correctly Predicted: 176
+
+--- Model Hyperparameters (Logistic Regression) ---
+  - C: 1
+  - class_weight: None
+  - dual: False
+  - fit_intercept: True
+  - intercept_scaling: 1
+  - l1_ratio: None
+  - max_iter: 100
+  - multi_class: deprecated
+  - n_jobs: None
+  - penalty: l2
+  - random_state: 42
+  - solver: lbfgs
+  - tol: 0.0001
+  - verbose: 0
+  - warm_start: False
+
+--- Full Classification Report (Text) ---
+              precision    recall  f1-score   support
+
+    ข่าวจริง       0.94      0.92      0.93       746
+    ข่าวปลอม       0.95      0.99      0.97      2221
+ข่าวบิดเบือน       0.96      0.69      0.80       255
+
+    accuracy                           0.95      3222
+   macro avg       0.95      0.86      0.90      3222
+weighted avg       0.95      0.95      0.95      3222
+

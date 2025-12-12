@@ -1,0 +1,16 @@
+requests
+pandas
+openpyxl
+scikit-learn
+pythainlp
+transformers
+torch
+accelerate
+bcrypt
+matplotlib
+seaborn
+datasets 
+evaluate
+tiktoken
+sentencepiece
+python-multipart
