@@ -97,7 +97,7 @@ function ResultPage() {
         ? location.state.searchResult
         : [];
 
-    const confidencePercentage = (Number(cleanConfidence)).toFixed(2);
+    const confidencePercentage = (Number(cleanConfidence)).toFixed(0);
     let predictionText = result.conclusion || "ไม่สามารถระบุได้";
     const uniqueTexts = [...new Set(result.analysis_points.map(p => p.header).filter(Boolean))];
     const uniqueTextsDes = [...new Set(result.analysis_points.map(p => p.description).filter(Boolean))];
@@ -184,7 +184,7 @@ function ResultPage() {
                             ผลลัพธ์: <span style={{ color: color_text, fontWeight: 'bold' }}>{predictionText}</span>
                         </Typography>
                         <Typography variant="h6" sx={{ mt: 1, color: 'rgba(255,255,255,0.8)' }}>
-                            ความเชื่อมั่น {Number(confidencePercentage).toFixed(2) + '%'}
+                            ความเชื่อมั่น {Number(confidencePercentage).toFixed(0) + '%'}
                         </Typography>
                     </Box>
 
