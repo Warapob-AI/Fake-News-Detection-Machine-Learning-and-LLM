@@ -141,14 +141,14 @@ function ResultPage() {
         <Box
             sx={{
                 minHeight: '100vh', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', py: 4, px: 2, backgroundColor: '#1d2c3d',
+                alignItems: 'center', py: 4, px: 2, backgroundColor: '#101125',
                 gap: 3,
             }}
         >
             <Navbar></Navbar>
             {/* ส่วนหัวและผลลัพธ์ (คงเดิม) */}
             <Typography variant="h4" color="white" fontWeight={500} marginTop={10} gutterBottom>ผลการวิเคราะห์</Typography>
-            <Paper elevation={6} sx={{ p: 3, borderRadius: '16px', backgroundColor: '#2c3e50', width: '100%', maxWidth: '800px', textAlign: 'center' }}>
+            <Paper elevation={6} sx={{ p: 3, borderRadius: '16px', backgroundColor: 'rgba(255, 255, 255, 0.1)', width: '100%', maxWidth: '800px', textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ color: 'white', mb: 1 }}>หัวข้อข่าวที่นำมาวิเคราะห์</Typography>
                 <Typography sx={{ color: 'rgba(255,255,255,0.8)' }}>"{analyzedText}"</Typography>
             </Paper>
@@ -161,7 +161,7 @@ function ResultPage() {
                     gap: { xs: 3, md: 5 },
                     p: 4,
                     borderRadius: '16px',
-                    backgroundColor: '#2c3e50',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     width: '100%',
                     maxWidth: '800px'
                 }}
@@ -221,7 +221,7 @@ function ResultPage() {
                 sx={{
                     p: { xs: 2, md: 4 },
                     borderRadius: '16px',
-                    backgroundColor: '#2c3e50',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     width: '100%',
                     maxWidth: '800px',
                     minHeight: '250px'
