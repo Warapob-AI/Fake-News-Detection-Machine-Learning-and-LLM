@@ -224,7 +224,7 @@ const DetectText = React.forwardRef((props, ref) => {
       if (inputType === 'link') {
         webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-linknews-thai";
       } else {
-        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
+        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook-test/ai-check-textnews-thai";
       }
 
       const payload = { taskUser: newsText };
@@ -469,7 +469,7 @@ const DetectText = React.forwardRef((props, ref) => {
         >
           <Button
             onClick={handleAnalyzeClick}
-            disabled={isLoading || (inputType === 'text' && currentWordCount > 100) || (inputType === 'link' && linkCount > 1)}
+            disabled={isLoading}
             smooth
             variant="contained"
             size="large"

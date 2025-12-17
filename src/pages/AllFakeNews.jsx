@@ -108,7 +108,7 @@ function AllTrueNews() {
       <Navbar />
       <Box sx={{ width: '100%', maxWidth: 'lg', mt: 5, mx: 'auto', p: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-          <Typography sx={{ color: '#45e98fff', fontSize: '2rem', fontWeight: 'bold' }}>
+          <Typography sx={{ color: '#e94560', fontSize: '2rem', fontWeight: 'bold' }}>
             ข่าวปลอม
           </Typography>
         </Box>
