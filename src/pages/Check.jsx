@@ -285,11 +285,11 @@ const DetectText = React.forwardRef((props, ref) => {
       const responseText = await response.json();
       console.log('✅ รับข้อมูลสำเร็จ:', responseText);
 
-      if (responseText.output === 'ไม่สามารถตรวจสอบลิงก์นี้ได้ กรุณาลองใหม่..') {
+      if (responseText.output === 'ไม่สามารถตรวจสอบลิงก์นี้ได้ คุณสามารถเปลี่ยนไปใช้เป็นแบบข้อความได้ ขออภัยในความไม่สะดวก') {
         await Swal.fire({
           icon: 'error',
           title: 'เกิดข้อผิดพลาด',
-          text: 'ไม่สามารถตรวจสอบลิงก์นี้ได้ กรุณาลองใหม่..',
+          text: 'ไม่สามารถตรวจสอบลิงก์นี้ได้ คุณสามารถเปลี่ยนไปใช้เป็นแบบข้อความได้ ขออภัยในความไม่สะดวก',
           confirmButtonText: 'ตกลง',
         });
         return;
