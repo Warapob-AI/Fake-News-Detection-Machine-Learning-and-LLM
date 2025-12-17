@@ -382,7 +382,7 @@ function ResultPage() {
                                                 }
                                             }}
                                         >
-                                            รายละเอียดเพิ่มเติม
+                                            อ่านข่าวเต็ม
                                         </Button>
                                     </Box>
                                 </Card>

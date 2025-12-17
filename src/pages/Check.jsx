@@ -68,14 +68,43 @@ const StatsSection = () => {
   );
 };
 
+// Compone// ✅ ฟังก์ชันช่วยนับคำภาษาไทย (แยกออกมาไว้นอก Component หรือไว้ข้างในก็ได้)
+const countWords = (text) => {
+  if (!text) return 0;
+  try {
+    const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
+    const segments = segmenter.segment(text);
+    return [...segments].filter(s => s.isWordLike).length;
+  } catch (error) {
+    return text.trim().split(/\s+/).length; // Fallback
+  }
+};
+
 // Component หลักของคุณ
 const DetectText = React.forwardRef((props, ref) => {
   const [newsText, setNewsText] = useState('');
-  const [status, setStatus] = useState('');
+  // const [status, setStatus] = useState(''); // (ไม่ได้ใช้ ลบออกได้)
   const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0); // ✅ 2. เพิ่ม State สำหรับเก็บ %
+  // const [progress, setProgress] = useState(0); // (ถ้าไม่ได้ใช้ ลบออกได้)
   const navigate = useNavigate();
   const [inputType, setInputType] = useState('text');
+  const [isFocused, setIsFocused] = useState(false);
+
+  // ✅ คำนวณจำนวนคำปัจจุบันแบบ Real-time
+  const currentWordCount = inputType === 'text' ? countWords(newsText) : 0;
+  const linkCount = (newsText.match(/https?:\/\//gi) || []).length;
+  // ✅ ฟังก์ชันจัดการเมื่อข้อความเปลี่ยน (พร้อม Limit 100 คำ)
+  const handleTextChange = (e) => {
+    const newValue = e.target.value;
+
+    if (inputType === 'text') {
+      // ✅ เปลี่ยนเป็น: รับค่าทุกอย่างที่พิมพ์/วางเข้ามาก่อน (เพื่อให้ Paste ติด)
+      setNewsText(newValue);
+    } else {
+      setNewsText(newValue);
+    }
+
+  };
 
   const handleAnalyzeClick = async () => {
     // --- 1. ตรวจสอบความถูกต้องของข้อมูล (Validation) ---
@@ -90,6 +119,7 @@ const DetectText = React.forwardRef((props, ref) => {
     );
 
     if (inputType === 'text') {
+      // 1.1 เช็คค่าว่าง
       if (!newsText.trim()) {
         return Swal.fire({
           icon: 'error',
@@ -98,48 +128,46 @@ const DetectText = React.forwardRef((props, ref) => {
           confirmButtonText: 'ลองอีกครั้ง',
           confirmButtonColor: '#d33',
         });
-      } else if (urlPattern.test(newsText)) {
+      } 
+      // 1.2 เช็คว่าเป็นลิงก์หรือไม่ (ห้ามใส่ลิงก์ในช่องข้อความ)
+      else if (urlPattern.test(newsText)) {
         return Swal.fire({
           icon: 'error',
-          title: 'ข้อมูลผิดรูปแบบ!',
-          text: 'กรุณาอย่าป้อนข้อความเป็นลิงก์!',
+          title: 'อย่ากรอกลิงก์ในช่องข้อความ!',
+          text: 'เปลี่ยนไปใช้ช่องลิงก์ เพื่อให้สามารถกรอกลิงก์ได้',
           confirmButtonText: 'ลองอีกครั้ง',
           confirmButtonColor: '#d33',
         });
       }
 
-      // ✅ เพิ่ม Logic ตรวจสอบจำนวนคำ (ภาษาไทย)
-      try {
-        // ใช้ Intl.Segmenter ตัดคำภาษาไทย (แม่นยำกว่า split ทั่วไป)
-        const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
-        const segments = segmenter.segment(newsText);
-        // นับเฉพาะที่เป็นคำจริง ๆ (isWordLike = true) เพื่อไม่นับช่องว่างหรือเครื่องหมาย
-        const wordCount = [...segments].filter(s => s.isWordLike).length;
+      // ✅ ย้ายการประกาศตัวแปร wordCount มาไว้ตรงนี้ (ก่อนจะเช็คเงื่อนไข < 5 หรือ > 100)
+      const wordCount = countWords(newsText);
 
-        if (wordCount < 5) {
-          return Swal.fire({
-            icon: 'warning', // ใช้ icon warning เพื่อเตือน
-            title: 'ข้อความสั้นเกินไป!',
-            text: 'ข้อความของคุณน้อยเกินไป (น้อยกว่า 5 คำ) กรุณาพิมพ์เพิ่มเพื่อให้ AI วิเคราะห์ได้แม่นยำขึ้น',
-            confirmButtonText: 'ตกลง',
-            confirmButtonColor: '#f39c12', // สีส้ม
-          });
-        }
-      } catch (error) {
-        // Fallback: กรณี Browser เก่ามากที่ไม่รองรับ Intl.Segmenter ให้ใช้วิธีนับความยาวตัวอักษรแทน (เช่น < 20 ตัว)
-        if (newsText.trim().length < 20) {
-           return Swal.fire({
-            icon: 'warning',
-            title: 'ข้อความสั้นเกินไป!',
-            text: 'กรุณาพิมพ์ข้อความให้ยาวกว่านี้ เพื่อความแม่นยำในการวิเคราะห์',
-            confirmButtonText: 'ตกลง',
-            confirmButtonColor: '#f39c12',
-          });
-        }
+      // 1.3 เช็คจำนวนคำน้อยเกินไป
+      if (wordCount < 5) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'ข้อความสั้นเกินไป!',
+          text: 'ข้อความของคุณน้อยเกินไป (น้อยกว่า 5 คำ)...',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+      // 1.4 เช็คจำนวนคำมากเกินไป
+      else if (wordCount > 100) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'ข้อความยาวเกินไป!',
+          text: `คุณใส่ข้อความมา ${wordCount} คำ (จำกัดไม่เกิน 100 คำ) กรุณาลบข้อความบางส่วนออก`,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
       }
 
     } else {
-      // กรณี inputType === 'link' (เหมือนเดิม)
+      // กรณี inputType === 'link'
+      
+      // 2.1 เช็คค่าว่าง
       if (!newsText.trim()) {
         return Swal.fire({
           icon: 'error',
@@ -148,7 +176,35 @@ const DetectText = React.forwardRef((props, ref) => {
           confirmButtonText: 'ลองอีกครั้ง',
           confirmButtonColor: '#d33',
         });
-      } else if (!urlPattern.test(newsText)) {
+      }
+
+      // เช็คจำนวนโปรโตคอลและช่องว่าง
+      const protocolCount = (newsText.match(/https?:\/\//gi) || []).length;
+      const hasSpace = newsText.trim().split(/\s+/).length > 1;
+
+      // 2.2 เช็คว่าใส่มาหลายลิงก์หรือไม่
+      if (protocolCount > 1) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'ใส่ลิงก์เกิน 1 รายการ!',
+          text: 'ระบบรองรับการตรวจสอบทีละ 1 ลิงก์เท่านั้น กรุณาลบลิงก์ส่วนเกินออก',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+
+      else if (hasSpace) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'อย่ากรอกข้อความในช่องลิงก์ข่าว!',
+          text: 'เปลี่ยนไปใช้ช่องข้อความ เพื่อให้สามารถกรอกข้อความได้',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+
+      // 2.3 ตรวจสอบรูปแบบ URL ว่าถูกต้องหรือไม่
+      else if (!urlPattern.test(newsText)) {
         return Swal.fire({
           icon: 'error',
           title: 'ข้อมูลผิดรูปแบบ!',
@@ -175,7 +231,7 @@ const DetectText = React.forwardRef((props, ref) => {
 
       const controller = new AbortController();
       const signal = controller.signal;
-      let timerIds = []; 
+      let timerIds = [];
 
       const clearAllTimers = () => {
         timerIds.forEach((id) => clearTimeout(id));
@@ -201,9 +257,9 @@ const DetectText = React.forwardRef((props, ref) => {
           const b = Swal.getCancelButton();
           if (b) {
             b.onclick = () => {
-              controller.abort(); 
-              clearAllTimers(); 
-              Swal.close(); 
+              controller.abort();
+              clearAllTimers();
+              Swal.close();
             };
           }
         },
@@ -220,7 +276,7 @@ const DetectText = React.forwardRef((props, ref) => {
       timerIds.push(setTimeout(() => { updateSwalText('ระบบกำลังตรวจสอบให้อยู่ อย่าพึ่งปิดหน้านี้'); }, 40000));
 
       const response = await apiRequestPromise;
-      clearAllTimers(); 
+      clearAllTimers();
 
       if (!response.ok) {
         throw new Error(`Server Error: ${response.statusText}`);
@@ -257,7 +313,7 @@ const DetectText = React.forwardRef((props, ref) => {
     } catch (error) {
       if (error.name === 'AbortError') {
         console.log('User cancelled the operation');
-        Swal.close(); 
+        Swal.close();
       } else {
         console.error('Process Error:', error);
         Swal.fire({
@@ -273,10 +329,8 @@ const DetectText = React.forwardRef((props, ref) => {
   };
 
   return (
-    <> {/* ✅ ใช้ Fragment ครอบเพื่อ return สองอย่างพร้อมกัน */}
-
+    <>
       <StatsSection />
-
 
       <Box
         ref={ref}
@@ -301,48 +355,21 @@ const DetectText = React.forwardRef((props, ref) => {
           วางข้อความหรือลิงก์ข่าวที่ต้องการวิเคราะห์ลงในช่องด้านล่าง
         </Typography>
 
+        {/* Toggle Button Group (คงเดิม) */}
         <ToggleButtonGroup
           value={inputType}
           exclusive
           onChange={(event, newType) => {
-            if (newType !== null) {
-              setInputType(newType);
-            }
+            if (newType !== null) { setInputType(newType); setNewsText(''); }
           }}
-          aria-label="Input type"
           size="small"
           sx={{
-            mb: 1.5,
-            width: '100%',
-            maxWidth: '300px',
-
-            // สไตล์เริ่มต้นสำหรับปุ่มทุกอัน
-            '& .MuiToggleButton-root': {
-              backgroundColor: '#283481', // สีพื้นหลังเริ่มต้น
-              color: '#FFFFFF',
-              flex: 1,
-              transition: 'background 0.4s ease-in-out, color 0.4s ease-in-out',
-            },
-
-            // ✅ 1. กำหนด hover effect ให้ทำงาน "เฉพาะปุ่มที่ยังไม่ถูกเลือก"
-            '& .MuiToggleButton-root:not(.Mui-selected):hover': {
-              background: 'linear-gradient(90deg,rgba(166, 227, 255, 1) 0%, rgba(106, 170, 251, 1) 100%)',
-              color: '#FFFFFF'
-            },
-
-            // ✅ 2. กำหนดให้ปุ่มที่ "ถูกเลือก" มีสไตล์ gradient ค้างไว้เลย
-            '& .Mui-selected': {
-              background: 'linear-gradient(90deg,rgba(166, 227, 255, 1) 0%, rgba(106, 170, 251, 1) 100%)',
-              color: '#FFFFFF'
-            },
-
-            // สไตล์ borderRadius ยังคงเหมือนเดิม
-            '& .MuiToggleButton-root:first-of-type': {
-              borderRadius: '20px 0 0 0',
-            },
-            '& .MuiToggleButton-root:last-of-type': {
-              borderRadius: '0 20px 0 0',
-            },
+            mb: 1.5, width: '100%', maxWidth: '300px',
+            '& .MuiToggleButton-root': { backgroundColor: '#283481', color: '#FFFFFF', flex: 1, transition: 'all 0.4s' },
+            '& .MuiToggleButton-root:not(.Mui-selected):hover': { background: 'linear-gradient(90deg,rgba(166, 227, 255, 1) 0%, rgba(106, 170, 251, 1) 100%)', color: '#FFFFFF' },
+            '& .Mui-selected': { background: 'linear-gradient(90deg,rgba(166, 227, 255, 1) 0%, rgba(106, 170, 251, 1) 100%)', color: '#FFFFFF' },
+            '& .MuiToggleButton-root:first-of-type': { borderRadius: '20px 0 0 0' },
+            '& .MuiToggleButton-root:last-of-type': { borderRadius: '0 20px 0 0' },
           }}
           data-aos="fade-up"
           data-aos-delay="200"
@@ -351,56 +378,138 @@ const DetectText = React.forwardRef((props, ref) => {
           <ToggleButton value="link">ลิงก์</ToggleButton>
         </ToggleButtonGroup>
 
-        {/* ✅ TextField เหมือนเดิมทุกอย่าง แค่เปลี่ยน placeholder */}
-        <TextField
-          value={newsText}
-          onChange={(e) => setNewsText(e.target.value)}
-          multiline
-          rows={8}
-          placeholder={
-            inputType === 'text'
-              ? "วางเนื้อหาข่าวของคุณที่นี่..."
-              : "วางลิงก์ (URL) ของคุณที่นี่..."
-          }
-          variant="filled"
-          fullWidth
-          sx={{
-            maxWidth: '980px',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            textarea: { color: 'white' }
-          }}
+        {/* ✅ เริ่มส่วน Custom Input Box */}
+        <Box
           data-aos="fade-up"
           data-aos-delay="200"
-        />
+          sx={{ width: '100%', maxWidth: '980px' }} // กำหนดความกว้างให้เท่ากับตัวข้างใน
+        >
+          {/* ✅ ตัว Input Box ของเดิม (ลบ data-aos ออกแล้ว) */}
+          <Box
+            sx={{
+              width: '100%',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              // Logic เส้นขอบยังคงทำงานได้ปกติโดยไม่ตีกับ AOS
+              borderBottom: isFocused ? '2px solid #69A9FB' : '2px solid rgba(255,255,255,0.05)',
+              transition: 'border-bottom 0.3s ease',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <TextField
+              value={newsText}
+              onChange={handleTextChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              multiline
+              rows={8}
+              placeholder={inputType === 'text' ? "วางเนื้อหาข่าวของคุณที่นี่..." : "วางลิงก์ (URL) ของคุณที่นี่..."}
+              variant="standard"
+              fullWidth
+              InputProps={{
+                disableUnderline: true,
+              }}
+              sx={{
+                p: 2,
+                textarea: { color: 'white' }
+              }}
+            />
 
-        <Button
-          onClick={handleAnalyzeClick}
-          disabled={isLoading}
-          smooth
-          variant="contained"
-          size="large"
-          sx={{
-            width: '10rem',
-            height: '2.8rem',
-            mt: 2,
-            backgroundImage: 'linear-gradient(to right, #1A9AD5, #69A9FB)',
-            color: 'white',
-            boxShadow: 'none',
-            '&:hover': {
-              backgroundImage: 'linear-gradient(to right, #178ec6, #5898ea)',
-              boxShadow: 'none',
-            },
-          }}
+            {/* แถบ Footer ด้านล่าง */}
+            {/* แถบ Footer ด้านล่าง */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              p: '8px 16px',
+              flexWrap: 'wrap',
+              gap: 1
+            }}>
+              {/* ข้อความเตือนทางซ้าย */}
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
+                {"* เนื้อหาข่าวควรมีความชัดเจนมาก เพื่อผลลัพธ์ที่ดีที่สุด"}
+              </Typography>
+
+              {/* ✅ ปรับแก้ตัวนับคำ/ลิงก์ */}
+              <Typography variant="caption" sx={{ 
+                color: (
+                  // กรณี 1: อยู่หน้า Text แต่ (คำเกิน 100 หรือ ดันมี Link โผล่มา)
+                  (inputType === 'text' && (currentWordCount >= 100 || linkCount > 0)) || 
+                  
+                  // กรณี 2: อยู่หน้า Link แต่ (Link เกิน 1 หรือ ดันพิมพ์ Text ธรรมดาที่ไม่มี Link)
+                  (inputType === 'link' && (linkCount > 1 || (linkCount === 0 && newsText.trim().length > 0)))
+                ) 
+                  ? '#ff4444' // สีแดง
+                  : 'rgba(255,255,255,0.8)', // สีปกติ
+                fontWeight: 500 
+              }}>
+                {inputType === 'text'
+                  // 🟢 Logic หน้า Text (เหมือนเดิม)
+                  ? (linkCount > 0 ? `จำนวนลิงก์: ${linkCount} / 0` : `จำนวนคำ: ${currentWordCount} / 100`)
+                  
+                  // 🔵 Logic หน้า Link (เพิ่มเงื่อนไขใหม่)
+                  : (linkCount === 0 && newsText.trim().length > 0 
+                      ? `จำนวนคำ: ${currentWordCount} / 0` // ถ้าไม่มี Link เลย แต่มีข้อความ -> ขึ้นจำนวนคำ / 0 (แดง)
+                      : `จำนวนลิงก์: ${linkCount > 0 ? linkCount : (newsText.trim() ? 1 : 0)} / 1` // ปกติ
+                    )
+                }
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        {/* จบส่วน Custom Input Box */}
+
+        <Box
           data-aos="fade-up"
           data-aos-delay="500"
+          sx={{ mt: 2 }} // ย้าย Margin top มาที่กล่องหุ้มแทน
         >
-          {isLoading ? 'กำลังวิเคราะห์...' : 'วิเคราะห์ข่าว'}
-        </Button>
-      </Box>
+          <Button
+            onClick={handleAnalyzeClick}
+            disabled={isLoading || (inputType === 'text' && currentWordCount > 100) || (inputType === 'link' && linkCount > 1)}
+            smooth
+            variant="contained"
+            size="large"
+            sx={{
+              width: '10rem',
+              height: '2.8rem',
+              // mt: 2,  <-- ลบอันนี้ออก (ย้ายไป Box ด้านบนแล้ว)
+              backgroundImage: 'linear-gradient(to right, #1A9AD5, #69A9FB)',
+              color: 'white',
+              boxShadow: 'none',
 
+              '&:hover': {
+                backgroundImage: 'linear-gradient(to right, #178ec6, #5898ea)',
+                boxShadow: 'none',
+              },
+
+              // ✅ เพิ่มส่วนนี้: ป้องกันปุ่มสีจางลงตอนกำลังโหลด (ถ้าต้องการให้สีสดเหมือนเดิม)
+              '&.Mui-disabled': {
+                backgroundImage: 'linear-gradient(to right, #1A9AD5, #69A9FB)', // ใช้สีเดิม
+                color: 'rgba(255, 255, 255, 0.7)', // ปรับสีตัวอักษรให้ดูจางนิดเดียวพอ (ให้รู้ว่าโหลด)
+                opacity: 1, // บังคับไม่ให้ปุ่มโปร่งแสง
+              }
+            }}
+          // ❌ ลบ data-aos ออกจากตรงนี้
+          // data-aos="fade-up"
+          // data-aos-delay="500"
+          >
+            {isLoading ? (
+              // เพิ่ม CircularProgress เล็กๆ ให้ดูดีขึ้น (Optional)
+              <>
+                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                กำลังวิเคราะห์
+              </>
+            ) : (
+              'วิเคราะห์ข่าว'
+            )}
+          </Button>
+        </Box>
+      </Box>
     </>
   );
-});
-
+})
 export default DetectText;

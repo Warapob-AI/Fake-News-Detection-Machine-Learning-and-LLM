@@ -164,7 +164,7 @@ function AllTrueNews() {
                         }
                       }}
                     >
-                      ไปที่ลิงก์เนื้อหาข่าว
+                      อ่านข่าวเต็ม
                     </Button>
                   </Box>
                 </Card>
