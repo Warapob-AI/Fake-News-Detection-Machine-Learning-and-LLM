@@ -144,7 +144,7 @@ const DetectText = React.forwardRef((props, ref) => {
       const wordCount = countWords(newsText);
 
       // 1.3 เช็คจำนวนคำน้อยเกินไป
-      if (wordCount < 5) {
+      if (wordCount <= 5) {
         return Swal.fire({
           icon: 'warning',
           title: 'ข้อความสั้นเกินไป!',
@@ -224,7 +224,7 @@ const DetectText = React.forwardRef((props, ref) => {
       if (inputType === 'link') {
         webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-linknews-thai";
       } else {
-        webhookUrl = "http://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
+        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
       }
 
       const payload = { taskUser: newsText };
