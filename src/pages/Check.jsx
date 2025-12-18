@@ -224,7 +224,7 @@ const DetectText = React.forwardRef((props, ref) => {
       if (inputType === 'link') {
         webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-linknews-thai";
       } else {
-        webhookUrl = "http://localhost:5678/webhook/local-test-speed";
+        webhookUrl = "http://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
       }
 
       const payload = { taskUser: newsText };
