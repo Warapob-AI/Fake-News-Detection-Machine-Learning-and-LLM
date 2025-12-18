@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env
 venv
+main.py
+model_ai.joblib
+vector.joblib
