@@ -40,14 +40,14 @@ const Home = React.forwardRef((props, ref) => {
         }}
 
       >
-        <Typography variant="h3" fontWeight={700} color='#FFF' opacity={1} data-aos="fade-up" data-aos-delay="200" gutterBottom sx = {{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }}}>
+        <Typography variant="h3" fontWeight={700} color='#FFF' opacity={1} data-aos="fade-up" data-aos-delay="200" gutterBottom sx = {{ fontSize: { xs: '2rem', sm: '2rem', md: '2.5rem' }}}>
           UDetectionNews
         </Typography>
         <Typography variant="h6" fontWeight={400} color='#FFF' opacity={1} data-aos="fade-up" data-aos-delay="300" gutterBottom sx = {{ fontSize: { xs: '1rem', sm: '1rem', md: '1.5rem' }}}>
           เว็บไซต์การให้บริการวิเคราะห์และตรวจจับข่าวเท็จ
         </Typography>
-        <Typography variant="h6" fontWeight={300} color='#FFF' opacity={1} data-aos="fade-up" data-aos-delay="400" sx={{ pt: 1, lineHeight: '1.8rem' }} fontSize="14px">
-          เว็บไซต์ของเราให้บริการ วิเคราะห์และตรวจจับข่าวเท็จ เพื่อช่วยให้ผู้ใช้งาน สามารถแยกแยะระหว่างข่าวจริงและข่าวปลอมได้อย่างแม่นยำ โดยใช้เทคโนโลยี <br />
+        <Typography variant="h6" fontWeight={300} color='#FFF' opacity={1} data-aos="fade-up" data-aos-delay="400" sx={{ mx: {xs: 2, sm: 2, md: 20, lg: 40, xl: 60},pt: 1, lineHeight: '1.8rem', fontSize: { xs: '12px', sm: '14px' } }}>
+          เว็บไซต์ของเราให้บริการ วิเคราะห์และตรวจจับข่าวเท็จ เพื่อช่วยให้ผู้ใช้งาน สามารถแยกแยะระหว่างข่าวจริงและข่าวปลอมได้อย่างแม่นยำ โดยใช้เทคโนโลยี 
           ปัญญาประดิษฐ์ (AI) และการใช้ LLM เข้ามาช่วยประเมินเนื้อหาข่าวและแหล่งที่มาของข้อมูล
         </Typography>
         <Button

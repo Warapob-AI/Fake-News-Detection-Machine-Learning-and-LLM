@@ -314,80 +314,85 @@ function ResultPage() {
                 {/* เพิ่ม justifyContent="center" เพื่อให้การ์ดที่เหลืออยู่ตรงกลาง */}
                 <Grid container maxWidth='lg' spacing={3} justifyContent="center">
                     {relatedWebsites
-                        // 1. กรองข้อมูล
                         .filter(site =>
-                            // กรอง Title (ใช้ && นะครับ เพื่อให้ทุกเงื่อนไขต้องเป็นจริง)
                             site.title !== 'ไม่สามารถโหลดข้อมูลได้' &&
                             site.title !== 'No content found' &&
                             site.title !== 'ไม่มีชื่อเรื่อง' &&
-
-                            // กรอง Link (Shopee & Lazada)
                             !site.link.includes('shopee') &&
                             !site.link.includes('lazada')
                         )
-                        // 2. ตัดให้เหลือสูงสุด 3 อัน
                         .slice(0, 3)
-                        .map((site, index) => (
+                        .map((site, index) => {
+                            // ฟังก์ชันตัดข้อความ
+                            const truncateText = (text, maxLength) => {
+                                if (!text) return '';
+                                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+                            };
 
-                            <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ px: '2rem', display: 'flex', justifyContent: 'center' }} key={index}>
-                                <Card sx={{
-                                    width: '100%',
-                                    // กำหนด max-width เพื่อไม่ให้การ์ดบานออกจนน่าเกลียดเวลามีการ์ดเดียว
-                                    maxWidth: '350px',
-                                    height: '100%',
-                                    backgroundColor: '#fff',
-                                    color: '#000',
-                                    borderRadius: '1px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
-                                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'translateY(-5px)',
-                                        boxShadow: '0 12px 30px rgba(0,0,0,0.2)'
-                                    }
-                                }}>
-                                    <CardMedia
-                                        component="img"
-                                        height="160"
-                                        image={
-                                            site.imageUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(site.imageUrl)
-                                                ? site.imageUrl
-                                                : notfound
+                            const truncatedTitle = truncateText(site.title, 30); // ตัดที่ 30 ตัวอักษร
+                            const truncatedDescription = truncateText(site.description, 100); // ตัดที่ 100 ตัวอักษร
+
+                            return (
+                                <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ px: '2rem', display: 'flex', justifyContent: 'center' }} key={index}>
+                                    <Card sx={{
+                                        width: '100%',
+                                        maxWidth: '350px',
+                                        height: '100%',
+                                        backgroundColor: '#fff',
+                                        color: '#000',
+                                        borderRadius: '1px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                                        transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                                        '&:hover': {
+                                            transform: 'translateY(-5px)',
+                                            boxShadow: '0 12px 30px rgba(0,0,0,0.2)'
                                         }
-                                        alt={site.title}
-                                        sx={{ objectFit: 'cover' }}
-                                    />
-                                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                                        <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold', lineHeight: 1.3, height: 'auto', overflow: 'hidden' }}>
-                                            {site.title}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ height: 'auto', overflow: 'hidden' }}>
-                                            {site.description}
-                                        </Typography>
-                                    </CardContent>
-                                    <Box sx={{ p: 2, pt: 1 }}>
-                                        <Button
-                                            component="a"
-                                            href={site.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            variant="contained"
-                                            fullWidth
-                                            sx={{
-                                                backgroundColor: '#2761aeff',
-                                                fontWeight: 'bold',
-                                                '&:hover': {
-                                                    backgroundColor: '#229954'
-                                                }
-                                            }}
-                                        >
-                                            อ่านข่าวเต็ม
-                                        </Button>
-                                    </Box>
-                                </Card>
-                            </Grid>
-                        ))}
+                                    }}>
+                                        <CardMedia
+                                            component="img"
+                                            height="160"
+                                            image={
+                                                site.imageUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(site.imageUrl)
+                                                    ? site.imageUrl
+                                                    : notfound
+                                            }
+                                            alt={site.title}
+                                            sx={{ objectFit: 'cover' }}
+                                        />
+                                        <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                                            <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold', lineHeight: 1.3, height: 'auto', overflow: 'hidden' }}>
+                                                {truncatedTitle}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ height: 'auto', overflow: 'hidden' }}>
+                                                {truncatedDescription}
+                                            </Typography>
+                                        </CardContent>
+                                        <Box sx={{ p: 2, pt: 1 }}>
+                                            <Button
+                                                component="a"
+                                                href={site.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                variant="contained"
+                                                fullWidth
+                                                sx={{
+                                                    backgroundColor: '#2761aeff',
+                                                    fontWeight: 'bold',
+                                                    '&:hover': {
+                                                        backgroundColor: '#229954'
+                                                    }
+                                                }}
+                                            >
+                                                อ่านข่าวเต็ม
+                                            </Button>
+                                        </Box>
+                                    </Card>
+                                </Grid>
+                            );
+                        })}
+
                 </Grid>
             </Box>
 

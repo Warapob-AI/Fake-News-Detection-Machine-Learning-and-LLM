@@ -348,10 +348,10 @@ const DetectText = React.forwardRef((props, ref) => {
           pb: 5
         }}
       >
-        <Typography variant="h3" color="white" fontWeight={600} gutterBottom data-aos="fade-up" sx={{ fontSize: { xs: '1.2rem', sm: '2rem', md: '2.5rem' } }}>
+        <Typography variant="h3" color="white" fontWeight={600} gutterBottom data-aos="fade-up" sx={{ fontSize: { xs: '1.45rem', sm: '2rem', md: '2.5rem' } }}>
           ตรวจจับข้อความข่าวและลิงก์ข่าว
         </Typography>
-        <Typography color="white" data-aos="fade-up" data-aos-delay="100" sx={{ fontSize: { xs: '0.7rem', sm: '1rem', md: '1.5rem' }, mb: 1 }}>
+        <Typography color="white" data-aos="fade-up" data-aos-delay="100" sx={{ fontSize: { xs: '0.81rem', sm: '1rem', md: '1.5rem' }, mb: 1 }}>
           วางข้อความหรือลิงก์ข่าวที่ต้องการวิเคราะห์ลงในช่องด้านล่าง
         </Typography>
 
