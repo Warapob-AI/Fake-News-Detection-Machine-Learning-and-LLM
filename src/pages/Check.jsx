@@ -185,7 +185,7 @@ const DetectText = React.forwardRef((props, ref) => {
         finalPayloadText = scrapeData.title;
 
         // ✅ บังคับใช้ Webhook แบบ TEXT เพราะเราแปลงเป็นข้อความแล้ว
-        targetWebhookUrl = "https://paintaisystemn8n.ggff.net/webhook-test/ai-check-textnews-thai-test";
+        targetWebhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
       }
 
       // --- เตรียมส่งเข้า n8n ---
