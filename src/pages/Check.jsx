@@ -222,9 +222,9 @@ const DetectText = React.forwardRef((props, ref) => {
       // กำหนด Webhook URL
       let webhookUrl = '';
       if (inputType === 'link') {
-        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-linknews-thai";
+        webhookUrl = "/n8n/webhook/ai-check-linknews-thai";
       } else {
-        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
+        webhookUrl = "/n8n/webhook/ai-check-textnews-thai";
       }
 
       const payload = { taskUser: newsText };
