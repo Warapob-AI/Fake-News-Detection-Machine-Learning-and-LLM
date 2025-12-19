@@ -27,3 +27,5 @@ venv
 main.py
 model_ai.joblib
 vector.joblib
+# Local Netlify folder
+.netlify
