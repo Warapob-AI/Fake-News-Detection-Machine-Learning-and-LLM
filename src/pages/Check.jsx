@@ -90,7 +90,7 @@ const DetectText = React.forwardRef((props, ref) => {
   const [inputType, setInputType] = useState('text');
   const [isFocused, setIsFocused] = useState(false);
 
-
+  
   // ✅ คำนวณจำนวนคำปัจจุบันแบบ Real-time
   const currentWordCount = inputType === 'text' ? countWords(newsText) : 0;
   const linkCount = (newsText.match(/https?:\/\//gi) || []).length;
@@ -109,7 +109,6 @@ const DetectText = React.forwardRef((props, ref) => {
 
   const handleAnalyzeClick = async () => {
     // --- 1. ตรวจสอบความถูกต้องของข้อมูล (Validation) ---
-    // ... (ส่วน Validation regex และเช็คคำว่าง เก็บไว้เหมือนเดิมได้เลยครับ ไม่ต้องแก้) ...
     const urlPattern = new RegExp(
       '^(https?:\\/\\/)?' + // protocol
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
@@ -121,87 +120,135 @@ const DetectText = React.forwardRef((props, ref) => {
     );
 
     if (inputType === 'text') {
-      if (!newsText.trim()) { return Swal.fire({ icon: 'error', title: 'ข้อมูลผิดรูปแบบ!', text: 'กรุณาป้อนข้อความข่าว!', confirmButtonText: 'ลองอีกครั้ง' }); }
-      else if (urlPattern.test(newsText)) { return Swal.fire({ icon: 'error', title: 'อย่ากรอกลิงก์ในช่องข้อความ!', text: 'เปลี่ยนไปใช้ช่องลิงก์', confirmButtonText: 'ลองอีกครั้ง' }); }
-      const wordCount = countWords(newsText);
-      if (wordCount <= 5) { return Swal.fire({ icon: 'warning', title: 'ข้อความสั้นเกินไป!', text: 'น้อยกว่า 5 คำ', confirmButtonText: 'ตกลง' }); }
-      else if (wordCount > 100) { return Swal.fire({ icon: 'warning', title: 'ข้อความยาวเกินไป!', text: 'เกิน 100 คำ', confirmButtonText: 'ตกลง' }); }
-
-    } else {
-      // inputType === 'link'
-      if (!newsText.trim()) { return Swal.fire({ icon: 'error', title: 'ข้อมูลผิดรูปแบบ!', text: 'กรุณาวางลิงก์ข่าว', confirmButtonText: 'ลองอีกครั้ง' }); }
-      const protocolCount = (newsText.match(/https?:\/\//gi) || []).length;
-      const hasSpace = newsText.trim().split(/\s+/).length > 1;
-      if (protocolCount > 1) { return Swal.fire({ icon: 'warning', title: 'ใส่ลิงก์เกิน 1 รายการ!', text: 'ได้ทีละ 1 ลิงก์', confirmButtonText: 'ตกลง' }); }
-      else if (hasSpace) { return Swal.fire({ icon: 'warning', title: 'อย่ากรอกข้อความในช่องลิงก์!', text: 'เปลี่ยนไปใช้ช่องข้อความ', confirmButtonText: 'ตกลง' }); }
-      else if (!urlPattern.test(newsText)) { return Swal.fire({ icon: 'error', title: 'ข้อมูลผิดรูปแบบ!', text: 'กรุณาป้อนลิงก์ให้ถูกต้อง', confirmButtonText: 'ลองอีกครั้ง' }); }
-    }
-
-    // --- 2. เริ่มต้นกระบวนการทำงาน ---
-    setIsLoading(true);
-
-    // ตั้งค่า Controller สำหรับยกเลิก
-    const controller = new AbortController();
-    const signal = controller.signal;
-    let timerIds = [];
-    const clearAllTimers = () => { timerIds.forEach((id) => clearTimeout(id)); timerIds = []; };
-
-    try {
-      let finalPayloadText = newsText; // ค่าเริ่มต้นคือค่าที่ User กรอก
-      let targetWebhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai"; // Default ใช้ Text Webhook
-
-      // 🔥 ไฮไลท์: ถ้าเป็น Link ให้แปลงเป็น Text ก่อนส่งเข้า n8n
-      if (inputType === 'link') {
-
-        // แสดง Loading ว่ากำลังดึงเนื้อหาข่าว
-        Swal.fire({
-          title: 'กำลังดึงเนื้อหาข่าว...',
-          html: 'ระบบกำลังแปลงลิงก์เป็นข้อความเพื่อวิเคราะห์...',
-          allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); }
+      // 1.1 เช็คค่าว่าง
+      if (!newsText.trim()) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'ข้อมูลผิดรูปแบบ!',
+          text: 'กรุณาป้อนข้อความข่าวเพื่อใช้ในการตรวจสอบข่าว!',
+          confirmButtonText: 'ลองอีกครั้ง',
+          confirmButtonColor: '#d33',
         });
-
-        // เรียกใช้ Netlify Function ที่เราสร้างไว้
-        const scrapeResponse = await fetch('/.netlify/functions/scrape-title', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: newsText }),
-          signal: signal
+      } 
+      // 1.2 เช็คว่าเป็นลิงก์หรือไม่ (ห้ามใส่ลิงก์ในช่องข้อความ)
+      else if (urlPattern.test(newsText)) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'อย่ากรอกลิงก์ในช่องข้อความ!',
+          text: 'เปลี่ยนไปใช้ช่องลิงก์ เพื่อให้สามารถกรอกลิงก์ได้',
+          confirmButtonText: 'ลองอีกครั้ง',
+          confirmButtonColor: '#d33',
         });
-
-        if (!scrapeResponse.ok) {
-          throw new Error('ไม่สามารถดึงข้อมูลจากลิงก์ได้ (Scrape Failed)');
-        }
-
-        const scrapeData = await scrapeResponse.json();
-
-        if (scrapeData.error || !scrapeData.title) {
-          throw new Error('ไม่พบหัวข้อข่าวในลิงก์นี้');
-        }
-
-        console.log("📌 Scraped Title:", scrapeData.title);
-
-        // ✅ เปลี่ยนข้อมูลที่จะส่งไป n8n ให้เป็น Title ที่ดึงมาได้
-        finalPayloadText = scrapeData.title;
-
-        // ✅ บังคับใช้ Webhook แบบ TEXT เพราะเราแปลงเป็นข้อความแล้ว
-        targetWebhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
       }
 
-      // --- เตรียมส่งเข้า n8n ---
-      const payload = { taskUser: finalPayloadText };
+      // ✅ ย้ายการประกาศตัวแปร wordCount มาไว้ตรงนี้ (ก่อนจะเช็คเงื่อนไข < 5 หรือ > 100)
+      const wordCount = countWords(newsText);
 
-      const apiRequestPromise = fetch(targetWebhookUrl, {
+      // 1.3 เช็คจำนวนคำน้อยเกินไป
+      if (wordCount <= 5) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'ข้อความสั้นเกินไป!',
+          text: 'ข้อความของคุณน้อยเกินไป (น้อยกว่า 5 คำ)...',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+      // 1.4 เช็คจำนวนคำมากเกินไป
+      else if (wordCount > 100) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'ข้อความยาวเกินไป!',
+          text: `คุณใส่ข้อความมา ${wordCount} คำ (จำกัดไม่เกิน 100 คำ) กรุณาลบข้อความบางส่วนออก`,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+
+    } else {
+      // กรณี inputType === 'link'
+      
+      // 2.1 เช็คค่าว่าง
+      if (!newsText.trim()) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'ข้อมูลผิดรูปแบบ!',
+          text: 'กรุณาวางลิงก์ข่าวเพื่อใช้ในการตรวจสอบข่าว',
+          confirmButtonText: 'ลองอีกครั้ง',
+          confirmButtonColor: '#d33',
+        });
+      }
+
+      // เช็คจำนวนโปรโตคอลและช่องว่าง
+      const protocolCount = (newsText.match(/https?:\/\//gi) || []).length;
+      const hasSpace = newsText.trim().split(/\s+/).length > 1;
+
+      // 2.2 เช็คว่าใส่มาหลายลิงก์หรือไม่
+      if (protocolCount > 1) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'ใส่ลิงก์เกิน 1 รายการ!',
+          text: 'ระบบรองรับการตรวจสอบทีละ 1 ลิงก์เท่านั้น กรุณาลบลิงก์ส่วนเกินออก',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+
+      else if (hasSpace) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'อย่ากรอกข้อความในช่องลิงก์ข่าว!',
+          text: 'เปลี่ยนไปใช้ช่องข้อความ เพื่อให้สามารถกรอกข้อความได้',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f39c12',
+        });
+      }
+
+      // 2.3 ตรวจสอบรูปแบบ URL ว่าถูกต้องหรือไม่
+      else if (!urlPattern.test(newsText)) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'ข้อมูลผิดรูปแบบ!',
+          text: 'กรุณาป้อนลิงก์ อย่าป้อนข้อความใส่เข้ามา',
+          confirmButtonText: 'ลองอีกครั้ง',
+          confirmButtonColor: '#d33',
+        });
+      }
+    }
+
+    // --- 2. เริ่มต้นกระบวนการทำงาน (เหมือนเดิม) ---
+    setIsLoading(true);
+
+    try {
+      // กำหนด Webhook URL
+      let webhookUrl = '';
+      if (inputType === 'link') {
+        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-linknews-thai";
+      } else {
+        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
+      }
+
+      const payload = { taskUser: newsText };
+
+      const controller = new AbortController();
+      const signal = controller.signal;
+      let timerIds = [];
+
+      const clearAllTimers = () => {
+        timerIds.forEach((id) => clearTimeout(id));
+        timerIds = [];
+      };
+
+      const apiRequestPromise = fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         signal: signal,
       });
 
-      // UI Loading สำหรับ n8n
       Swal.fire({
         title: 'กำลังวิเคราะห์ข่าว...',
-        html: `กำลังตรวจสอบ: <b>${finalPayloadText.substring(0, 40)}...</b>`, // โชว์ข้อความบางส่วน
+        html: 'กำลังนำ Keyword มา Search หาข้อมูล..',
         allowOutsideClick: false,
         showCancelButton: true,
         cancelButtonText: 'ยกเลิก',
@@ -227,6 +274,7 @@ const DetectText = React.forwardRef((props, ref) => {
 
       timerIds.push(setTimeout(() => { updateSwalText('กำลังวิเคราะห์ผลการทำนาย..อย่างละเอียด!'); }, 10000));
       timerIds.push(setTimeout(() => { updateSwalText('รอซักครู่น้า..กำลังประมวลผลอยู่'); }, 25000));
+      timerIds.push(setTimeout(() => { updateSwalText('ระบบกำลังตรวจสอบให้อยู่ อย่าพึ่งปิดหน้านี้'); }, 40000));
 
       const response = await apiRequestPromise;
       clearAllTimers();
@@ -239,18 +287,26 @@ const DetectText = React.forwardRef((props, ref) => {
       console.log('✅ รับข้อมูลสำเร็จ:', responseText);
 
       if (responseText.output === 'ไม่สามารถตรวจสอบลิงก์นี้ได้ คุณสามารถเปลี่ยนไปใช้เป็นแบบข้อความได้ ขออภัยในความไม่สะดวก') {
-        await Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: responseText.output, confirmButtonText: 'ตกลง' });
+        await Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถตรวจสอบลิงก์นี้ได้ คุณสามารถเปลี่ยนไปใช้เป็นแบบข้อความได้ ขออภัยในความไม่สะดวก',
+          confirmButtonText: 'ตกลง',
+        });
         return;
       }
 
-      await Swal.fire({ icon: 'success', title: 'วิเคราะห์สำเร็จ!', confirmButtonText: 'ดูผลลัพธ์' });
+      await Swal.fire({
+        icon: 'success',
+        title: 'วิเคราะห์สำเร็จ!',
+        confirmButtonText: 'ดูผลลัพธ์',
+      });
 
       navigate('/validation', {
         state: {
           prediction: responseText.output.confidence,
           result: responseText.output,
-          textUser: newsText, // เก็บลิงก์เดิมที่ User กรอกไว้โชว์
-          extractedTitle: inputType === 'link' ? finalPayloadText : null, // (Optional) เก็บ Title ที่แกะได้ไปใช้ต่อ
+          textUser: newsText,
           searchResult: responseText.searchResponse,
         },
       });
@@ -264,7 +320,7 @@ const DetectText = React.forwardRef((props, ref) => {
         Swal.fire({
           icon: 'error',
           title: 'เกิดข้อผิดพลาด',
-          text: error.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+          text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ หรือเกิดข้อผิดพลาดภายใน',
           confirmButtonText: 'ตกลง',
         });
       }
@@ -379,27 +435,27 @@ const DetectText = React.forwardRef((props, ref) => {
               </Typography>
 
               {/* ✅ ปรับแก้ตัวนับคำ/ลิงก์ */}
-              <Typography variant="caption" sx={{
+              <Typography variant="caption" sx={{ 
                 color: (
                   // กรณี 1: อยู่หน้า Text แต่ (คำเกิน 100 หรือ ดันมี Link โผล่มา)
-                  (inputType === 'text' && (currentWordCount >= 100 || linkCount > 0)) ||
-
+                  (inputType === 'text' && (currentWordCount >= 100 || linkCount > 0)) || 
+                  
                   // กรณี 2: อยู่หน้า Link แต่ (Link เกิน 1 หรือ ดันพิมพ์ Text ธรรมดาที่ไม่มี Link)
                   (inputType === 'link' && (linkCount > 1 || (linkCount === 0 && newsText.trim().length > 0)))
-                )
+                ) 
                   ? '#ff4444' // สีแดง
                   : 'rgba(255,255,255,0.8)', // สีปกติ
-                fontWeight: 500
+                fontWeight: 500 
               }}>
                 {inputType === 'text'
                   // 🟢 Logic หน้า Text (เหมือนเดิม)
                   ? (linkCount > 0 ? `จำนวนลิงก์: ${linkCount} / 0` : `จำนวนคำ: ${currentWordCount} / 100`)
-
+                  
                   // 🔵 Logic หน้า Link (เพิ่มเงื่อนไขใหม่)
-                  : (linkCount === 0 && newsText.trim().length > 0
-                    ? `จำนวนคำ: ${currentWordCount} / 0` // ถ้าไม่มี Link เลย แต่มีข้อความ -> ขึ้นจำนวนคำ / 0 (แดง)
-                    : `จำนวนลิงก์: ${linkCount > 0 ? linkCount : (newsText.trim() ? 1 : 0)} / 1` // ปกติ
-                  )
+                  : (linkCount === 0 && newsText.trim().length > 0 
+                      ? `จำนวนคำ: ${currentWordCount} / 0` // ถ้าไม่มี Link เลย แต่มีข้อความ -> ขึ้นจำนวนคำ / 0 (แดง)
+                      : `จำนวนลิงก์: ${linkCount > 0 ? linkCount : (newsText.trim() ? 1 : 0)} / 1` // ปกติ
+                    )
                 }
               </Typography>
             </Box>
