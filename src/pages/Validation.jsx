@@ -162,7 +162,14 @@ function ResultPage() {
             <Typography variant="h4" color="white" fontWeight={500} marginTop={10} gutterBottom>ผลการวิเคราะห์</Typography>
             <Paper elevation={6} sx={{ p: 3, borderRadius: '16px', backgroundColor: 'rgba(255, 255, 255, 0.1)', width: '100%', maxWidth: '800px', textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ color: 'white', mb: 1 }}>หัวข้อข่าวที่นำมาวิเคราะห์</Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.8)' }}>{decodeURIComponent(analyzedText)}</Typography>
+                <Typography
+                    sx={{
+                        color: 'rgba(255,255,255,0.8)',
+                        fontSize: { xs: '13.5px', sm: '15px' } // แก้จาก sx เป็น xs
+                    }}
+                >
+                    {decodeURIComponent(analyzedText)}
+                </Typography>
             </Paper>
             <Paper
                 elevation={6}
@@ -192,10 +199,25 @@ function ResultPage() {
 
                     {/* ส่วนแสดงผลลัพธ์ (บนสุดของคอลัมน์ขวา) */}
                     <Box sx={{ color: 'white', textAlign: { xs: 'center', md: 'left' } }}>
-                        <Typography variant="h4">
+                        <Typography
+                            variant="h4"
+                            sx={{
+                                // ปรับขนาดฟอนต์: มือถือเหลือ 24px (1.5rem), จอปกติ 34px (2.125rem)
+                                fontSize: { xs: '1.5rem', md: '2.125rem' }
+                            }}
+                        >
                             ผลลัพธ์: <span style={{ color: color_text, fontWeight: 'bold' }}>{predictionText}</span>
                         </Typography>
-                        <Typography variant="h6" sx={{ mt: 1, color: 'rgba(255,255,255,0.8)' }}>
+
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                mt: 1,
+                                color: 'rgba(255,255,255,0.8)',
+                                // ปรับขนาดฟอนต์: มือถือเหลือ 16px (1rem), จอปกติ 20px (1.25rem)
+                                fontSize: { xs: '1rem', md: '1.25rem' }
+                            }}
+                        >
                             ความเชื่อมั่น {Number(confidencePercentage).toFixed(0) + '%'}
                         </Typography>
                     </Box>
@@ -209,12 +231,12 @@ function ResultPage() {
                             color: 'white'
                         }}
                     >
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1rem', md: '1.25rem' } }}>
                             ทำไมถึงเป็น{predictionText}?
                         </Typography>
                         <Stack component="ul" spacing={1} sx={{ pl: 2, mt: 1, listStyleType: 'none', m: 0 }}>
                             {uniqueTexts.map((text, index) => (
-                                <Typography component="li" key={index} sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                                <Typography component="li" key={index} sx={{ color: 'rgba(255,255,255,0.9)', fontSize: { xs: '1rem', md: '1.25rem' } }}>
                                     {/* เช็คว่ามี text ไหม ถ้ามีให้ลบตัว  ออกก่อนแสดงผล */}
                                     {`${index + 1}. ${text ? text.replace(/\uFFFD/g, '') : ''}`}
                                 </Typography>
@@ -239,7 +261,7 @@ function ResultPage() {
                     minHeight: '250px'
                 }}
             >
-                <Typography variant="h5" sx={{ color: 'white', mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
+                <Typography variant="h5" sx={{ color: 'white', mb: 3, fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '1.5rem', md: '2.125rem' } }}>
                     รายละเอียดเชิงลึก
                 </Typography>
 
@@ -253,7 +275,7 @@ function ResultPage() {
                         return (
                             <Box key={index}>
                                 {/* --- ส่วนของหัวข้อ (ปรับปรุง Logic) --- */}
-                                <Typography variant="h6" sx={{ color: 'white', minHeight: '32px' }}>
+                                <Typography variant="h6" sx={{ color: 'white', minHeight: '32px', fontSize: { xs: '1rem', md: '1.25rem' } }}>
                                     {
                                         hasFinished ? `${index + 1}. ${item.header}` // 1. ถ้าพิมพ์เสร็จแล้ว: แสดงข้อความเต็ม
                                             : isHeaderTyping ? ( // 2. ถ้ากำลังพิมพ์: แสดง Animation
@@ -345,9 +367,12 @@ function ResultPage() {
                             const truncatedDescription = truncateText(site.description, 100); // ตัดที่ 100 ตัวอักษร
 
                             return (
-                                <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ px: '2rem', display: 'flex', justifyContent: 'center' }} key={index}>
+                                <Grid size={{ xs: 12, sm: 12, md: 6, lg: 4 }} sx={{ px: '2rem', display: 'flex', justifyContent: 'center' }} key={index}>
                                     <Card sx={{
-                                        width: '100%',
+                                        width: { xs: '100%', md: '500px' },
+
+                                        // จัดกึ่งกลาง (ถ้าจำเป็น)
+                                        mx: 'auto',
                                         maxWidth: '350px',
                                         height: '100%',
                                         backgroundColor: '#fff',

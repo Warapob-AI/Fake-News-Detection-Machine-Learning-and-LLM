@@ -1,26 +1,40 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { CircularProgress, Typography, Box } from '@mui/material';
+import { CircularProgress, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
 import { useSpring, animated } from '@react-spring/web';
 
 const AnimatedCircle = animated.circle;
 
 function CircularProgressWithLabel(props) {
-    const sizeCircle = 340;
-    const strokeWidth = 10;
+    // 1. เรียกใช้ Theme และ Media Query เพื่อเช็คขนาดหน้าจอ
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // จอเล็กกว่า 600px
+
+    // 2. กำหนดขนาด (Config) ตามขนาดหน้าจอ
+    let sizeCircle = 340; // ขนาดปกติ (Desktop)
+    let strokeWidth = 10; // ความหนาเส้นปกติ
+    let fontSizeVariant = "h3"; // ขนาดตัวอักษรปกติ
+
+    if (isMobile) {
+        sizeCircle = 300; // ลดขนาดลงสำหรับมือถือ
+        strokeWidth = 10;  // ลดความหนาเส้น
+        fontSizeVariant = "h3"; // ลดขนาดตัวอักษร
+    } 
+
+    // คำนวณค่าทางคณิตศาสตร์ใหม่ตาม sizeCircle ที่เปลี่ยนไป
     const radius = (sizeCircle - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     
-    // ✅ ปรับแก้ useSpring ที่นี่
+    // useSpring
     const { offset } = useSpring({
-        from: { offset: circumference }, // เริ่มต้นที่ 0%
+        from: { offset: circumference },
         to: { offset: circumference - (props.value / 100) * circumference },
-        // ✨ 1. ปรับ config ให้ช้าและนุ่มนวลขึ้น
         config: {
-            tension: 120, // ค่าน้อยลงจะทำให้ "เด้ง" น้อยลง
-            friction: 60,  // ค่ามากขึ้นจะทำให้หยุดนิ่งเร็วขึ้น (Smooth)
+            tension: 120,
+            friction: 60,
         },
-        // ✨ 2. ลบ reset: true เพื่อให้แอนิเมชันทำงานแค่ครั้งเดียว
+        // ใส่ dependencies เพื่อให้คำนวณใหม่เมื่อขนาดหน้าจอเปลี่ยน
+        reset: false, 
     });
 
     return (
