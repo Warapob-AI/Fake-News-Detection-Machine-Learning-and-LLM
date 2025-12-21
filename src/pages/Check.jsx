@@ -227,7 +227,7 @@ const DetectText = React.forwardRef((props, ref) => {
 
       // 2. กำหนด Domain หลัก และ Domain สำรอง
       const mainUrl = `https://paintaisystemn8n.ggff.net/${endpointPath}`;
-      const backupUrl = `http://152.42.205.6.nip.io/${endpointPath}`;
+      const backupUrl = `https://udetectionnewsn8n.ggff.net/${endpointPath}`;
 
       const payload = { taskUser: newsText };
 

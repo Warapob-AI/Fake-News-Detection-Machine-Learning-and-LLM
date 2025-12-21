@@ -20,7 +20,7 @@ function TrueNews() {
 
         const endpointPath = "webhook/call-news";
         const mainUrl = `https://paintaisystemn8n.ggff.net/${endpointPath}`;
-        const backupUrl = `http://152.42.205.6.nip.io/${endpointPath}`;
+        const backupUrl = `https://udetectionnewsn8n.ggff.net/${endpointPath}`;
 
         // Payload ตามที่คุณต้องการ
         const payload = { category: 'ข่าวจริง', index: 3 };
