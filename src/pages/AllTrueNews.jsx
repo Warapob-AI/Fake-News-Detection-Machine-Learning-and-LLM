@@ -20,25 +20,35 @@ function AllTrueNews() {
       try {
         setLoading(true);
 
-        // --- Step 1: เรียกข้อมูลจาก N8N Webhook โดยตรง ---
-        const webhookUrl = 'https://paintaisystemn8n.ggff.net/webhook/call-news'; // (อย่าลืมเปิด Active)
-        const payload = { category: 'ข่าวจริง', index: 100 }; 
+        const endpointPath = "webhook/call-news";
+        const mainUrl = `https://paintaisystemn8n.ggff.net/${endpointPath}`;
+        const backupUrl = `http://152.42.205.6.nip.io/${endpointPath}`;
 
-        console.log("🚀 Calling N8N (All News)...");
-        const webhookResponse = await fetch(webhookUrl, {
+        // Payload ตามที่คุณต้องการ
+        const payload = { category: 'ข่าวจริง', index: 100 };
+
+        let response;
+        const fetchOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: signal,
-        });
+          body: JSON.stringify(payload)
+        };
 
-        if (!webhookResponse.ok) {
-          const errorText = await webhookResponse.text();
-          throw new Error(`N8N Error (${webhookResponse.status}): ${errorText}`);
+        try {
+          // 1. ลองยิงไปที่ Domain หลักก่อน
+          response = await fetch(mainUrl, fetchOptions);
+        } catch (err) {
+          // 2. ถ้า Main พัง ให้ลองยิงไปที่ IP สำรอง
+          console.warn(`Main URL failed, switching to Backup URL: ${backupUrl}`);
+          response = await fetch(backupUrl, fetchOptions);
         }
-        
-        // แปลง Response เป็น JSON
-        const responseData = await webhookResponse.json();
+
+        if (!response.ok) {
+          throw new Error(`Server Error: ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+
         console.log("✅ Data from N8N:", responseData);
 
         // --- Step 2: จัดการข้อมูล (ไม่ต้องเรียก axios แล้ว) ---
@@ -46,19 +56,19 @@ function AllTrueNews() {
 
         // กรณี 1: N8N ส่งกลับมาเป็น Key ชื่อ 'news_list' (ถ้าแก้ใน n8n แล้ว)
         if (responseData.news_list && Array.isArray(responseData.news_list)) {
-            dataToDisplay = responseData.news_list;
+          dataToDisplay = responseData.news_list;
         }
         // กรณี 2: N8N ส่งกลับมาเป็น Array ตรงๆ
         else if (Array.isArray(responseData)) {
-            dataToDisplay = responseData;
-        } 
+          dataToDisplay = responseData;
+        }
         // กรณี 3: N8N ส่งกลับมาเป็น key ชื่อ 'array' (แบบเก่า)
         else if (responseData.array && Array.isArray(responseData.array)) {
-            dataToDisplay = responseData.array;
+          dataToDisplay = responseData.array;
         }
         // กรณี 4: ส่งมาแค่ Object เดียว ให้จับใส่ Array
         else if (responseData && typeof responseData === 'object' && Object.keys(responseData).length > 0) {
-             dataToDisplay = [responseData];
+          dataToDisplay = [responseData];
         }
 
         console.log("Final List to Render:", dataToDisplay);
@@ -113,10 +123,10 @@ function AllTrueNews() {
           </Typography>
         </Box>
 
-        <Grid container spacing={{ xs: 12, sm: 3, md: 3, lg: 10}}>
+        <Grid container spacing={{ xs: 12, sm: 3, md: 3, lg: 10 }}>
           {relatedWebsites.length > 0 ? (
             relatedWebsites.map((site, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4}} key={index}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                 <Card sx={{
                   width: '100%',
                   height: '100%',

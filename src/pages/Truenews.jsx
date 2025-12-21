@@ -18,25 +18,35 @@ function TrueNews() {
       try {
         setLoading(true);
 
-        // --- Step 1: ยิงไปหา N8N ---
-        // (ใช้ URL ตามที่คุณตั้งค่า Active ไว้)
-        const webhookUrl = 'https://paintaisystemn8n.ggff.net/webhook/call-news';
+        const endpointPath = "webhook/call-news";
+        const mainUrl = `https://paintaisystemn8n.ggff.net/${endpointPath}`;
+        const backupUrl = `http://152.42.205.6.nip.io/${endpointPath}`;
+
+        // Payload ตามที่คุณต้องการ
         const payload = { category: 'ข่าวจริง', index: 3 };
 
-        console.log("🚀 Calling N8N...");
-        const webhookResponse = await fetch(webhookUrl, {
+        let response;
+        const fetchOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: signal,
-        });
+          body: JSON.stringify(payload)
+        };
 
-        if (!webhookResponse.ok) {
-          const errorText = await webhookResponse.text();
-          throw new Error(`N8N Error (${webhookResponse.status}): ${errorText}`);
+        try {
+          // 1. ลองยิงไปที่ Domain หลักก่อน
+          response = await fetch(mainUrl, fetchOptions);
+        } catch (err) {
+          // 2. ถ้า Main พัง ให้ลองยิงไปที่ IP สำรอง
+          console.warn(`Main URL failed, switching to Backup URL: ${backupUrl}`);
+          response = await fetch(backupUrl, fetchOptions);
         }
 
-        const responseData = await webhookResponse.json();
+        if (!response.ok) {
+          throw new Error(`Server Error: ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+
         console.log("✅ Data from N8N:", responseData);
 
         // --- Step 2: ดึงข้อมูลออกมา (ปรับ Logic ตรงนี้) ---
@@ -108,10 +118,10 @@ function TrueNews() {
           ข่าวจริง
         </Typography>
 
-        <Grid container spacing={{ xs: 12, sm: 3, md: 3, lg: 10}} data-aos="fade-up" data-aos-delay="200">
+        <Grid container spacing={{ xs: 12, sm: 3, md: 3, lg: 10 }} data-aos="fade-up" data-aos-delay="200">
           {relatedWebsites.length > 0 ? (
             relatedWebsites.map((site, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4}} key={index}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                 <Card sx={{
                   width: '100%',
                   height: '100%',

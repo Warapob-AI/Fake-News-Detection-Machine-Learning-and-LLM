@@ -90,7 +90,7 @@ const DetectText = React.forwardRef((props, ref) => {
   const [inputType, setInputType] = useState('text');
   const [isFocused, setIsFocused] = useState(false);
 
-  
+
   // ✅ คำนวณจำนวนคำปัจจุบันแบบ Real-time
   const currentWordCount = inputType === 'text' ? countWords(newsText) : 0;
   const linkCount = (newsText.match(/https?:\/\//gi) || []).length;
@@ -129,7 +129,7 @@ const DetectText = React.forwardRef((props, ref) => {
           confirmButtonText: 'ลองอีกครั้ง',
           confirmButtonColor: '#d33',
         });
-      } 
+      }
       // 1.2 เช็คว่าเป็นลิงก์หรือไม่ (ห้ามใส่ลิงก์ในช่องข้อความ)
       else if (urlPattern.test(newsText)) {
         return Swal.fire({
@@ -167,7 +167,7 @@ const DetectText = React.forwardRef((props, ref) => {
 
     } else {
       // กรณี inputType === 'link'
-      
+
       // 2.1 เช็คค่าว่าง
       if (!newsText.trim()) {
         return Swal.fire({
@@ -220,13 +220,14 @@ const DetectText = React.forwardRef((props, ref) => {
     setIsLoading(true);
 
     try {
-      // กำหนด Webhook URL
-      let webhookUrl = '';
-      if (inputType === 'link') {
-        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-linknews-thai";
-      } else {
-        webhookUrl = "https://paintaisystemn8n.ggff.net/webhook/ai-check-textnews-thai";
-      }
+      // 1. กำหนด Path ปลายทาง (ส่วนท้ายเหมือนกัน)
+      const endpointPath = inputType === 'link'
+        ? "webhook/ai-check-linknews-thai"
+        : "webhook/ai-check-textnews-thai";
+
+      // 2. กำหนด Domain หลัก และ Domain สำรอง
+      const mainUrl = `https://paintaisystemn8n.ggff.net/${endpointPath}`;
+      const backupUrl = `http://152.42.205.6.nip.io/${endpointPath}`;
 
       const payload = { taskUser: newsText };
 
@@ -239,12 +240,13 @@ const DetectText = React.forwardRef((props, ref) => {
         timerIds = [];
       };
 
-      const apiRequestPromise = fetch(webhookUrl, {
+      // ตั้งค่า Options สำหรับ Fetch (ใช้ร่วมกันทั้ง 2 URLs)
+      const fetchOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         signal: signal,
-      });
+      };
 
       Swal.fire({
         title: 'กำลังวิเคราะห์ข่าว...',
@@ -276,7 +278,24 @@ const DetectText = React.forwardRef((props, ref) => {
       timerIds.push(setTimeout(() => { updateSwalText('รอซักครู่น้า..กำลังประมวลผลอยู่'); }, 25000));
       timerIds.push(setTimeout(() => { updateSwalText('ระบบกำลังตรวจสอบให้อยู่ อย่าพึ่งปิดหน้านี้'); }, 40000));
 
-      const response = await apiRequestPromise;
+      // --- ส่วนสำคัญ: Logic การสลับ URL อัตโนมัติ ---
+      let response;
+      try {
+        // ลองยิงไปที่ Main URL ก่อน
+        response = await fetch(mainUrl, fetchOptions);
+      } catch (err) {
+        // ถ้า Error และไม่ใช่การกด "ยกเลิก" (AbortError) ให้ลองใช้ Backup URL
+        if (err.name !== 'AbortError') {
+          console.warn(`Main URL failed (${err.message}), switching to Backup URL: ${backupUrl}`);
+          // อัปเดตข้อความบอก user นิดหน่อย (Optional)
+          updateSwalText('กำลังเชื่อมต่อเซิร์ฟเวอร์สำรอง...');
+          response = await fetch(backupUrl, fetchOptions);
+        } else {
+          throw err; // ถ้า user กดยกเลิก ให้โยน error ออกไปเลย
+        }
+      }
+      // ---------------------------------------------
+
       clearAllTimers();
 
       if (!response.ok) {
@@ -435,27 +454,27 @@ const DetectText = React.forwardRef((props, ref) => {
               </Typography>
 
               {/* ✅ ปรับแก้ตัวนับคำ/ลิงก์ */}
-              <Typography variant="caption" sx={{ 
+              <Typography variant="caption" sx={{
                 color: (
                   // กรณี 1: อยู่หน้า Text แต่ (คำเกิน 100 หรือ ดันมี Link โผล่มา)
-                  (inputType === 'text' && (currentWordCount >= 100 || linkCount > 0)) || 
-                  
+                  (inputType === 'text' && (currentWordCount >= 100 || linkCount > 0)) ||
+
                   // กรณี 2: อยู่หน้า Link แต่ (Link เกิน 1 หรือ ดันพิมพ์ Text ธรรมดาที่ไม่มี Link)
                   (inputType === 'link' && (linkCount > 1 || (linkCount === 0 && newsText.trim().length > 0)))
-                ) 
+                )
                   ? '#ff4444' // สีแดง
                   : 'rgba(255,255,255,0.8)', // สีปกติ
-                fontWeight: 500 
+                fontWeight: 500
               }}>
                 {inputType === 'text'
                   // 🟢 Logic หน้า Text (เหมือนเดิม)
                   ? (linkCount > 0 ? `จำนวนลิงก์: ${linkCount} / 0` : `จำนวนคำ: ${currentWordCount} / 100`)
-                  
+
                   // 🔵 Logic หน้า Link (เพิ่มเงื่อนไขใหม่)
-                  : (linkCount === 0 && newsText.trim().length > 0 
-                      ? `จำนวนคำ: ${currentWordCount} / 0` // ถ้าไม่มี Link เลย แต่มีข้อความ -> ขึ้นจำนวนคำ / 0 (แดง)
-                      : `จำนวนลิงก์: ${linkCount > 0 ? linkCount : (newsText.trim() ? 1 : 0)} / 1` // ปกติ
-                    )
+                  : (linkCount === 0 && newsText.trim().length > 0
+                    ? `จำนวนคำ: ${currentWordCount} / 0` // ถ้าไม่มี Link เลย แต่มีข้อความ -> ขึ้นจำนวนคำ / 0 (แดง)
+                    : `จำนวนลิงก์: ${linkCount > 0 ? linkCount : (newsText.trim() ? 1 : 0)} / 1` // ปกติ
+                  )
                 }
               </Typography>
             </Box>
