@@ -48,16 +48,6 @@ function ResultPage() {
     const rawStringFromApi = location.state?.result;
     const analyzedText = location.state?.textUser;
 
-    // แปลง URL ให้เป็นข้อความภาษาไทย
-    const decodedUrl = decodeURIComponent(analyzedText);
-
-    // แยกส่วนที่ต้องการ (ตัด domain ออก)
-    const path = decodedUrl.split('/').slice(3).join('/'); // ตัด domain แล้วเอา path ที่เหลือ
-
-    // หรือถ้าต้องการเฉพาะหัวข้อข่าว
-    const title_url = path.split('/').pop(); // ดึงส่วนสุดท้าย (หัวข้อข่าว)
-
-
     useEffect(() => {
         window.scrollTo(0, 0);
         if (!rawStringFromApi) {
