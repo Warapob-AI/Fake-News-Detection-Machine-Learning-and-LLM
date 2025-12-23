@@ -146,6 +146,15 @@ function ResultPage() {
         predictionText = 'ข้อมูลไม่เพียงพอ'
     }
 
+    const safeDecode = (text) => {
+        try {
+            return decodeURIComponent(text || "");
+        } catch (e) {
+            // ถ้าเกิด Error (URI malformed) ให้คืนค่าเดิมกลับไปเลย
+            return text;
+        }
+    };
+
     return (
 
         <Box
@@ -168,7 +177,7 @@ function ResultPage() {
                         fontSize: { xs: '13.5px', sm: '15px' } // แก้จาก sx เป็น xs
                     }}
                 >
-                    {decodeURIComponent(analyzedText)}
+                    {safeDecode(analyzedText)}
                 </Typography>
             </Paper>
             <Paper
